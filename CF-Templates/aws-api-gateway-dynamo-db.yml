@@ -338,10 +338,13 @@ Resources:
     Type: 'AWS::ApiGateway::RestApi'
     Properties:
       Description: Handles CRUD operations for books
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
       Name: Books Service
     Metadata:
       'aws:cdk:path': AwsApiGatewayDynamoDbStack/BooksApi/Resource
-  BooksApiDeployment86CA39AFdf6485540baff01dde8651a3726e4327:
+  BooksApiDeployment86CA39AF9f9aa357ab5a9357c8173eb27e78b5d0:
     Type: 'AWS::ApiGateway::Deployment'
     Properties:
       Description: Handles CRUD operations for books
@@ -357,16 +360,21 @@ Resources:
     Metadata:
       'aws:cdk:path': AwsApiGatewayDynamoDbStack/BooksApi/Deployment/Resource
       'aws:cdk:do-not-refactor': true
-  BooksApiDeploymentStageprod0693B760:
+  BooksApiDeploymentStagedevB7B728E3:
     Type: 'AWS::ApiGateway::Stage'
     Properties:
       DeploymentId:
-        Ref: BooksApiDeployment86CA39AFdf6485540baff01dde8651a3726e4327
+        Ref: BooksApiDeployment86CA39AF9f9aa357ab5a9357c8173eb27e78b5d0
+      MethodSettings:
+        - DataTraceEnabled: true
+          HttpMethod: '*'
+          LoggingLevel: INFO
+          ResourcePath: /*
       RestApiId:
         Ref: BooksApi60AC975F
-      StageName: prod
+      StageName: dev
     Metadata:
-      'aws:cdk:path': AwsApiGatewayDynamoDbStack/BooksApi/DeploymentStage.prod/Resource
+      'aws:cdk:path': AwsApiGatewayDynamoDbStack/BooksApi/DeploymentStage.dev/Resource
   BooksApibooks1F745538:
     Type: 'AWS::ApiGateway::Resource'
     Properties:
@@ -410,7 +418,7 @@ Resources:
             - ':'
             - Ref: BooksApi60AC975F
             - /
-            - Ref: BooksApiDeploymentStageprod0693B760
+            - Ref: BooksApiDeploymentStagedevB7B728E3
             - /PUT/books/*
     Metadata:
       'aws:cdk:path': >-
@@ -486,7 +494,7 @@ Resources:
             - ':'
             - Ref: BooksApi60AC975F
             - /
-            - Ref: BooksApiDeploymentStageprod0693B760
+            - Ref: BooksApiDeploymentStagedevB7B728E3
             - /DELETE/books/*
     Metadata:
       'aws:cdk:path': >-
@@ -563,7 +571,7 @@ Resources:
             - ':'
             - Ref: BooksApi60AC975F
             - /
-            - Ref: BooksApiDeploymentStageprod0693B760
+            - Ref: BooksApiDeploymentStagedevB7B728E3
             - /GET/books
     Metadata:
       'aws:cdk:path': >-
@@ -639,7 +647,7 @@ Resources:
             - ':'
             - Ref: BooksApi60AC975F
             - /
-            - Ref: BooksApiDeploymentStageprod0693B760
+            - Ref: BooksApiDeploymentStagedevB7B728E3
             - /POST/books
     Metadata:
       'aws:cdk:path': >-
@@ -786,7 +794,7 @@ Resources:
     Type: 'AWS::CDK::Metadata'
     Properties:
       Analytics: >-
-        v2:deflate64:H4sIAAAAAAAA/+1Wz2/bIBT+W8qxoqxLbrklWzZVazcvyQ6VFUUvwBxWDAhwIwv5f5/AOMnarbtUmjTlYBl/j/e9n+A3IqPrEbm+gL27ouzhSootCUsP9AHD3m0CaxXUmm1JWMFW8jIgA9YLL7T6xFs0CUhBzdEEXSKMfGvicok6jLZCSqGqO80iVEzvN8V8sVnMv36bL1cII8tr/Qiy0FLQFk0Q485b3aJujd99V8lYhyXUWwYkfGgUjSbLgLh6FFarmiufrdLeRFzuQDHJbf6yjfIiO9fhgICx+al2mXZdonUUnnn/xBt1dfOKVlKFh5LGdcFtLZwTWnVYQE3CQqdWA+eamrNZ6jNjhaLCgJxSqpuDd/2eqDBNfNk+qkFBxVnqL8EdmpThF6yd2rx3nb1d6WIwMXRlGbLUe6C7GyWF4gfZkLGXhecQziGcQ8iHPrqGezxdB4PCSkfJM57nMGNLD57HG8UNLp2J/kqUkt/nvcNuvAHnuHdkGl/YjcmsoQ/cz8Dxco2lrhwJt7r6aHVjyoBkXn6Gk+v91cHk42C1w2BEBZ7voSVhwZ2fGlGGOCVQK8yhueMckWRPeLIGfs+N1G1MxW+VwYgDjQehjtvd6X9spW91JSjIG3ZyDv4FnoI7eomXHiqeQhugkyQkIV5wpxtLeapubJID0g9zxx+9Ab8rwPpD6C9IhywnInzH/U6zMsRqJGSYELw3vSwDQnleWTgpgU71OKb7P2BIuekVuu6Y7Tz/PH3WOB3DWCyhqqj6pfGm8R0uWr/T6s2YvB2R8cUPJ8RVHrLIon//BEctZQa+CwAA
+        v2:deflate64:H4sIAAAAAAAA/+1WTW/bMAz9LdVxUL0uueWWbmkRLG28JDsMRhAwFudolSVBklsYgv/7INlOvBbrDiswYMjBsEyKj0/8kDlKRlej5OoCnuxlzh4uBd8nfu0gf6DwZHee1RJKxfaJ38BeYOaJBuO440p+xppMPJFQIpmQd4QSV+uwXJOGkj0XgsviTrEgSqffdulstVvNvnydrTeEEoOlegSRKsHzmkwIQ+uMqkmzpR+/y+isoQLKPYPE31QyDy4zT1A+cqNkidJ1XvPWRVgeQDKBpvsylXS8I9dQT4Cx2dA6i7vekW1QnnF/hxtsVfWGXmKG+5SGdYqm5NZyJRvKoUz8SsVSA2urEtl1rDNtuMy5BjHNc1Ud2bV7gsE04nX+SQkSCmSxvjhaMsn8L7J6arq9247tRqW9i74qM99pnYP8MJeCSzzq+oi9rjwf4XyE8xG6pg/UaCuP10FvsFFB8wLnpZixtQOH4UaxPaUz0B+BYvDbuDfUjndgLTqbTMOL2nFyXeUP6K7BYralQhU28QtV3BpV6cwT0S3vYXC9v7kwcuy9NhQ0L8DhE9SJX6F1U80zTxhqoeqlDtVtQycwcLAxkONMhpGBkYkzFdKAX3BZLPARBZmQ+f3NklBiHRQ44BGmjtxwfWwWSlAyrbh0m1rHTiGr2e18eT9dkG0YWiKRZ6Q7evRTJBfiHpk+RwbN+18lOuDytN0Of5obtVAFz0HM2aDp/oU8Hu7Ekq5D9I5JGEwIf5WE6CVC0xVaVZkcYyGGej5K2rnz5FGDO6Rg3DFwr2j7HEUgeofuoFjmQy6jpB9mnNOtrhNw6bAwMEig6suu8/kfIMTYtAZNc4p2N6o9f7Y03hghWVwWwXRZOV25hqa1Oyj5fpx8GCXjix+W88tuHkxW7fsnzvnAEWkMAAA=
     Metadata:
       'aws:cdk:path': AwsApiGatewayDynamoDbStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
@@ -802,7 +810,7 @@ Outputs:
           - .
           - Ref: 'AWS::URLSuffix'
           - /
-          - Ref: BooksApiDeploymentStageprod0693B760
+          - Ref: BooksApiDeploymentStagedevB7B728E3
           - /
 Conditions:
   CDKMetadataAvailable:

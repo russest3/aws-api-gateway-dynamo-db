@@ -73,7 +73,13 @@ class AwsApiGatewayDynamoDbStack(Stack):
         api = apigw.RestApi(
             self, "BooksApi",
             rest_api_name="Books Service",
-            description="Handles CRUD operations for books"
+            description="Handles CRUD operations for books",
+            endpoint_types=[apigw.EndpointType.REGIONAL],
+            deploy_options=apigw.StageOptions(
+                logging_level=apigw.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+                stage_name="dev"
+            )
         )
 
         books = api.root.add_resource("books")
@@ -100,3 +106,6 @@ class AwsApiGatewayDynamoDbStack(Stack):
 
         # Output API URL
         self.api_url = api.url
+
+# curl -kv http://api_url/
+# Should return table
