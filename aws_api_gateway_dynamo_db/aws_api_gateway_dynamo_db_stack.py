@@ -2,6 +2,7 @@ from aws_cdk import (
     Stack,
     aws_dynamodb as dynamodb,
     aws_lambda as lambda_,
+    aws_iam as iam,
     aws_apigateway as apigw,
     custom_resources as cr,
     aws_logs as logs,
@@ -42,6 +43,10 @@ class AwsApiGatewayDynamoDbStack(Stack):
             **lambda_config
         )
 
+        get_lambda.add_function_url(
+            auth_type=lambda_.FunctionUrlAuthType.NONE,
+        )
+
         post_lambda = lambda_.Function(
             self, "PostHandler",
             code=lambda_.Code.from_asset("lambda"),
@@ -60,7 +65,16 @@ class AwsApiGatewayDynamoDbStack(Stack):
             self, "DeleteHandler",
             code=lambda_.Code.from_asset("lambda"),
             handler="delete.handler",
-            **lambda_config
+            **lambda_config,
+        )
+
+        # Lambda function to populate initial data
+        init_data_lambda = lambda_.Function(
+            self, "InitDataHandler",
+            code=lambda_.Code.from_asset("lambda"),
+            handler="init_data.handler",
+            timeout=Duration.seconds(30),
+            **lambda_config,
         )
 
         # Grant Lambda permissions to DynamoDB
@@ -68,6 +82,7 @@ class AwsApiGatewayDynamoDbStack(Stack):
         table.grant_write_data(post_lambda)
         table.grant_write_data(put_lambda)
         table.grant_write_data(delete_lambda)
+        table.grant_read_write_data(init_data_lambda)
 
         # Create API Gateway
         api = apigw.RestApi(
@@ -79,30 +94,50 @@ class AwsApiGatewayDynamoDbStack(Stack):
                 logging_level=apigw.MethodLoggingLevel.INFO,
                 data_trace_enabled=True,
                 stage_name="dev"
+            ),
+            cloud_watch_role=True,
+            cloud_watch_role_removal_policy=RemovalPolicy.DESTROY,
+            default_cors_preflight_options={
+                "allow_origins": apigw.Cors.ALL_ORIGINS,
+                "allow_methods": apigw.Cors.ALL_METHODS,
+            },
+            deploy=True,
+            retain_deployments=False,
+            api_key_source_type=apigw.ApiKeySourceType.HEADER,
+            policy=iam.PolicyDocument(
+                statements=[
+                    iam.PolicyStatement(
+                        actions=["execute-api:Invoke"],
+                        principals=[iam.AnyPrincipal()],
+                        resources=["execute-api:/*"]
+                    )
+                ]
             )
         )
+
+        api_key = apigw.ApiKey(self, "MyApiKey",
+            api_key_name="MyServiceApiKey",
+            enabled=True
+        )
+
+        usage_plan = api.add_usage_plan("MyUsagePlan",
+            name="MyServiceUsagePlan",
+            api_stages=[apigw.UsagePlanPerApiStage(
+                api=api,
+                stage=api.deployment_stage,
+            )],
+        )
+
+        usage_plan.add_api_key(api_key)
 
         books = api.root.add_resource("books")
         book = books.add_resource("{book_id}")
 
         # Connect methods to Lambda functions
-        books.add_method("GET", apigw.LambdaIntegration(get_lambda))
-        books.add_method("POST", apigw.LambdaIntegration(post_lambda))
-        book.add_method("PUT", apigw.LambdaIntegration(put_lambda))
-        book.add_method("DELETE", apigw.LambdaIntegration(delete_lambda))
-
-        # Lambda function to populate initial data
-        init_data_lambda = lambda_.Function(
-            self, "InitDataHandler",
-            code=lambda_.Code.from_asset("lambda"),
-            handler="init_data.handler",
-            runtime=lambda_.Runtime.PYTHON_3_12,
-            environment={
-                "TABLE_NAME": table.table_name
-            },
-            timeout=Duration.seconds(30)
-        )
-        table.grant_read_write_data(init_data_lambda)
+        get_method = books.add_method("GET", apigw.LambdaIntegration(get_lambda), api_key_required=True)
+        post_method = books.add_method("POST", apigw.LambdaIntegration(post_lambda), api_key_required=True)
+        put_method = book.add_method("PUT", apigw.LambdaIntegration(put_lambda), api_key_required=True)
+        delete_method = book.add_method("DELETE", apigw.LambdaIntegration(delete_lambda), api_key_required=True)
 
         # Output API URL
         self.api_url = api.url

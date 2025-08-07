@@ -1,10 +1,17 @@
 import os
 import boto3
+import logging
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ['TABLE_NAME'])
 
 def handler(event, context):
+    print("table is " + table)
+
     # Sample book data
     sample_books = [
         {
@@ -31,10 +38,16 @@ def handler(event, context):
     ]
 
     # Insert sample books
-    for book in sample_books:
+    try:
+      for book in sample_books:
         table.put_item(Item=book)
-
-    return {
-        "status": "SUCCESS",
-        "message": "Sample books added to database"
-    }
+        return {
+          "status": "SUCCESS",
+          "message": "Sample books added to database"
+        }
+    except:
+       print("Error inserting sample books")
+       return {
+          "status": "ERROR",
+          "message": "Error inserting sample books"
+        }
