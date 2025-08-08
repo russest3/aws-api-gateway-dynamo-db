@@ -14,45 +14,59 @@ dynamo = boto3.resource('dynamodb').Table(table_name)
 
 # Define some functions to perform the CRUD operations
 def create(payload):
-    return [
-        dynamo.put_item(Item=payload['Item']),
-        {
+    try:
+        dynamo.put_item(Item=payload['Item'])
+    except:
+        logger.error(f"Error creating item: {payload['Item']}")
+        raise
+
+    return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'message': 'Item created successfully'})
         }
-    ]
-
 
 def read(payload):
-    return [ 
-        dynamo.get_item(Key=payload['Key']),
-        {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
-        }
-    ]
+    try:
+        item = dynamo.get_item(Key=payload['Key'])
+    except:
+        logger.error(f"Error reading item: {payload['Key']}")
+        raise
+
+    return [
+            item['Item'],
+            {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+            }
+    ]    
 
 def update(payload):
-    return [ 
+    try:
         dynamo.update_item(**{k: payload[k] for k in ['Key', 'UpdateExpression', 
-    'ExpressionAttributeNames', 'ExpressionAttributeValues'] if k in payload}),
-        {
+        'ExpressionAttributeNames', 'ExpressionAttributeValues'] if k in payload})
+    except:
+        logger.error(f"Error updating item: {payload['Key']}")
+        raise
+
+    return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'message': 'Item updated successfully'})
         }
-    ]
 
 def delete(payload):
-    return [
-        dynamo.delete_item(Key=payload['Key']),
-        {
+    try:
+        dynamo.delete_item(Key=payload['Key'])
+    except:
+        logger.error(f"Error deleting item: {payload['Key']}")
+        raise
+
+    return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'message': 'Item deleted successfully'})
         }
-    ]
 
 def echo(payload):
     return [ 
