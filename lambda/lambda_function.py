@@ -14,20 +14,54 @@ dynamo = boto3.resource('dynamodb').Table(table_name)
 
 # Define some functions to perform the CRUD operations
 def create(payload):
-    return dynamo.put_item(Item=payload['Item'])
+    return [
+        dynamo.put_item(Item=payload['Item']),
+        {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'message': 'Item created successfully'})
+        }
+    ]
+
 
 def read(payload):
-    return dynamo.get_item(Key=payload['Key'])
+    return [ 
+        dynamo.get_item(Key=payload['Key']),
+        {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+        }
+    ]
 
 def update(payload):
-    return dynamo.update_item(**{k: payload[k] for k in ['Key', 'UpdateExpression', 
-    'ExpressionAttributeNames', 'ExpressionAttributeValues'] if k in payload})
+    return [ 
+        dynamo.update_item(**{k: payload[k] for k in ['Key', 'UpdateExpression', 
+    'ExpressionAttributeNames', 'ExpressionAttributeValues'] if k in payload}),
+        {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'message': 'Item updated successfully'})
+        }
+    ]
 
 def delete(payload):
-    return dynamo.delete_item(Key=payload['Key'])
+    return [
+        dynamo.delete_item(Key=payload['Key']),
+        {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'message': 'Item deleted successfully'})
+        }
+    ]
 
 def echo(payload):
-    return payload
+    return [ 
+        payload,
+        {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+        }
+    ]
 
 operations = {
     'create': create,
