@@ -1,863 +1,909 @@
-{
- "Resources": {
-  "lambdaapigatewaypolicy89620025": {
-   "Type": "AWS::IAM::Policy",
-   "Properties": {
-    "PolicyDocument": {
-     "Statement": [
-      {
-       "Action": [
-        "dynamodb:ConditionCheckItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:Query",
-        "dynamodb:Scan",
-        "dynamodb:UpdateItem",
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:DescribeLogStreams",
-        "logs:PutLogEvents"
-       ],
-       "Effect": "Allow",
-       "Resource": "*"
-      }
-     ],
-     "Version": "2012-10-17"
-    },
-    "PolicyName": "lambda-apigateway-policy",
-    "Roles": [
-     {
-      "Ref": "lambdaapigatewayrole2D804D1D"
-     }
-    ]
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/lambda-apigateway-policy/Resource"
-   }
-  },
-  "lambdaapigatewayrole2D804D1D": {
-   "Type": "AWS::IAM::Role",
-   "Properties": {
-    "AssumeRolePolicyDocument": {
-     "Statement": [
-      {
-       "Action": "sts:AssumeRole",
-       "Effect": "Allow",
-       "Principal": {
-        "Service": "lambda.amazonaws.com"
-       }
-      }
-     ],
-     "Version": "2012-10-17"
-    },
-    "Description": "Custom IAM role for Lambda function",
-    "RoleName": "lambda-apigateway-role"
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/lambda-apigateway-role/Resource"
-   }
-  },
-  "lambdaapigatewayroleDefaultPolicyC24B2C67": {
-   "Type": "AWS::IAM::Policy",
-   "Properties": {
-    "PolicyDocument": {
-     "Statement": [
-      {
-       "Action": [
-        "dynamodb:BatchGetItem",
-        "dynamodb:BatchWriteItem",
-        "dynamodb:ConditionCheckItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:DescribeTable",
-        "dynamodb:GetItem",
-        "dynamodb:GetRecords",
-        "dynamodb:GetShardIterator",
-        "dynamodb:PutItem",
-        "dynamodb:Query",
-        "dynamodb:Scan",
-        "dynamodb:UpdateItem"
-       ],
-       "Effect": "Allow",
-       "Resource": [
-        {
-         "Fn::GetAtt": [
-          "lambdaapigatewaytable2C79ECBE",
-          "Arn"
-         ]
-        },
-        {
-         "Ref": "AWS::NoValue"
-        }
-       ]
-      }
-     ],
-     "Version": "2012-10-17"
-    },
-    "PolicyName": "lambdaapigatewayroleDefaultPolicyC24B2C67",
-    "Roles": [
-     {
-      "Ref": "lambdaapigatewayrole2D804D1D"
-     }
-    ]
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/lambda-apigateway-role/DefaultPolicy/Resource"
-   }
-  },
-  "LambdaFunctionOverHttpsAEB384B6": {
-   "Type": "AWS::Lambda::Function",
-   "Properties": {
-    "Code": {
-     "S3Bucket": {
-      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-     },
-     "S3Key": "062bcdc9dde5806003a1c550ceddaae10e2bc3bd00a5e66454cf3cae8ab5cff2.zip"
-    },
-    "FunctionName": "LambdaFunctionOverHttps",
-    "Handler": "lambda_function.lambda_handler",
-    "Role": {
-     "Fn::GetAtt": [
-      "lambdaapigatewayrole2D804D1D",
-      "Arn"
-     ]
-    },
-    "Runtime": "python3.12"
-   },
-   "DependsOn": [
-    "lambdaapigatewayroleDefaultPolicyC24B2C67",
-    "lambdaapigatewayrole2D804D1D"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/LambdaFunctionOverHttps/Resource",
-    "aws:asset:path": "asset.062bcdc9dde5806003a1c550ceddaae10e2bc3bd00a5e66454cf3cae8ab5cff2",
-    "aws:asset:is-bundled": false,
-    "aws:asset:property": "Code"
-   }
-  },
-  "LambdaFunctionOverHttpsLogGroup7B6834EA": {
-   "Type": "AWS::Logs::LogGroup",
-   "Properties": {
-    "LogGroupName": {
-     "Fn::Join": [
-      "",
-      [
-       "/aws/lambda/",
-       {
-        "Ref": "LambdaFunctionOverHttpsAEB384B6"
-       }
-      ]
-     ]
-    },
-    "RetentionInDays": 731
-   },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/LambdaFunctionOverHttps/LogGroup/Resource"
-   }
-  },
-  "LambdaFunctionOverHttpslambdaapigatewaypermission827B3297": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "lambda:InvokeFunction",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "LambdaFunctionOverHttpsAEB384B6",
-      "Arn"
-     ]
-    },
-    "Principal": "apigateway.amazonaws.com",
-    "SourceArn": {
-     "Fn::Join": [
-      "",
-      [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":execute-api:",
-       {
-        "Ref": "AWS::Region"
-       },
-       ":",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       ":",
-       {
-        "Ref": "DynamoDBOperations91CAC159"
-       },
-       "/*/*/*"
-      ]
-     ]
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/LambdaFunctionOverHttps/lambda-apigateway-permission"
-   }
-  },
-  "DynamoDBOperations91CAC159": {
-   "Type": "AWS::ApiGateway::RestApi",
-   "Properties": {
-    "EndpointConfiguration": {
-     "Types": [
-      "REGIONAL"
-     ]
-    },
-    "Name": "DynamoDBOperations",
-    "Policy": {
-     "Statement": [
-      {
-       "Action": "execute-api:Invoke",
-       "Effect": "Allow",
-       "Principal": {
-        "AWS": "*"
-       },
-       "Resource": "execute-api:/*"
-      }
-     ],
-     "Version": "2012-10-17"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Resource"
-   }
-  },
-  "DynamoDBOperationsCloudWatchRoleD18E3853": {
-   "Type": "AWS::IAM::Role",
-   "Properties": {
-    "AssumeRolePolicyDocument": {
-     "Statement": [
-      {
-       "Action": "sts:AssumeRole",
-       "Effect": "Allow",
-       "Principal": {
-        "Service": "apigateway.amazonaws.com"
-       }
-      }
-     ],
-     "Version": "2012-10-17"
-    },
-    "ManagedPolicyArns": [
-     {
-      "Fn::Join": [
-       "",
-       [
-        "arn:",
-        {
-         "Ref": "AWS::Partition"
-        },
-        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-       ]
-      ]
-     }
-    ]
-   },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/CloudWatchRole/Resource"
-   }
-  },
-  "DynamoDBOperationsAccount88EF9192": {
-   "Type": "AWS::ApiGateway::Account",
-   "Properties": {
-    "CloudWatchRoleArn": {
-     "Fn::GetAtt": [
-      "DynamoDBOperationsCloudWatchRoleD18E3853",
-      "Arn"
-     ]
-    }
-   },
-   "DependsOn": [
-    "DynamoDBOperations91CAC159"
-   ],
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Account"
-   }
-  },
-  "DynamoDBOperationsDeploymentD4A356FB8a1c450930e161408ff9c3b84b6bf2df": {
-   "Type": "AWS::ApiGateway::Deployment",
-   "Properties": {
-    "Description": "Automatically created by the RestApi construct",
-    "RestApiId": {
-     "Ref": "DynamoDBOperations91CAC159"
-    }
-   },
-   "DependsOn": [
-    "DynamoDBOperationsOPTIONS2C57FF6D",
-    "DynamoDBOperationsPOSTF4241CB2"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Deployment/Resource"
-   }
-  },
-  "DynamoDBOperationsDeploymentStagetest84A4A34C": {
-   "Type": "AWS::ApiGateway::Stage",
-   "Properties": {
-    "DeploymentId": {
-     "Ref": "DynamoDBOperationsDeploymentD4A356FB8a1c450930e161408ff9c3b84b6bf2df"
-    },
-    "MethodSettings": [
-     {
-      "DataTraceEnabled": true,
-      "HttpMethod": "*",
-      "LoggingLevel": "INFO",
-      "ResourcePath": "/*"
-     }
-    ],
-    "RestApiId": {
-     "Ref": "DynamoDBOperations91CAC159"
-    },
-    "StageName": "test"
-   },
-   "DependsOn": [
-    "DynamoDBOperationsAccount88EF9192"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/DeploymentStage.test/Resource"
-   }
-  },
-  "DynamoDBOperationsOPTIONS2C57FF6D": {
-   "Type": "AWS::ApiGateway::Method",
-   "Properties": {
-    "ApiKeyRequired": false,
-    "AuthorizationType": "NONE",
-    "HttpMethod": "OPTIONS",
-    "Integration": {
-     "IntegrationResponses": [
-      {
-       "ResponseParameters": {
-        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
-        "method.response.header.Access-Control-Allow-Origin": "'*'",
-        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
-       },
-       "StatusCode": "204"
-      }
-     ],
-     "RequestTemplates": {
-      "application/json": "{ statusCode: 200 }"
-     },
-     "Type": "MOCK"
-    },
-    "MethodResponses": [
-     {
-      "ResponseParameters": {
-       "method.response.header.Access-Control-Allow-Headers": true,
-       "method.response.header.Access-Control-Allow-Origin": true,
-       "method.response.header.Access-Control-Allow-Methods": true
-      },
-      "StatusCode": "204"
-     }
-    ],
-    "ResourceId": {
-     "Fn::GetAtt": [
-      "DynamoDBOperations91CAC159",
-      "RootResourceId"
-     ]
-    },
-    "RestApiId": {
-     "Ref": "DynamoDBOperations91CAC159"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/OPTIONS/Resource"
-   }
-  },
-  "DynamoDBOperationsPOSTApiPermissionAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011POSTF5FDE89F": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "lambda:InvokeFunction",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "LambdaFunctionOverHttpsAEB384B6",
-      "Arn"
-     ]
-    },
-    "Principal": "apigateway.amazonaws.com",
-    "SourceArn": {
-     "Fn::Join": [
-      "",
-      [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":execute-api:",
-       {
-        "Ref": "AWS::Region"
-       },
-       ":",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       ":",
-       {
-        "Ref": "DynamoDBOperations91CAC159"
-       },
-       "/",
-       {
-        "Ref": "DynamoDBOperationsDeploymentStagetest84A4A34C"
-       },
-       "/POST/"
-      ]
-     ]
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/ApiPermission.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.POST.."
-   }
-  },
-  "DynamoDBOperationsPOSTApiPermissionTestAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011POSTEC81F65A": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "lambda:InvokeFunction",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "LambdaFunctionOverHttpsAEB384B6",
-      "Arn"
-     ]
-    },
-    "Principal": "apigateway.amazonaws.com",
-    "SourceArn": {
-     "Fn::Join": [
-      "",
-      [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":execute-api:",
-       {
-        "Ref": "AWS::Region"
-       },
-       ":",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       ":",
-       {
-        "Ref": "DynamoDBOperations91CAC159"
-       },
-       "/test-invoke-stage/POST/"
-      ]
-     ]
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/ApiPermission.Test.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.POST.."
-   }
-  },
-  "DynamoDBOperationsPOSTF4241CB2": {
-   "Type": "AWS::ApiGateway::Method",
-   "Properties": {
-    "AuthorizationType": "NONE",
-    "HttpMethod": "POST",
-    "Integration": {
-     "IntegrationHttpMethod": "POST",
-     "Type": "AWS",
-     "Uri": {
-      "Fn::Join": [
-       "",
-       [
-        "arn:",
-        {
-         "Ref": "AWS::Partition"
-        },
-        ":apigateway:",
-        {
-         "Ref": "AWS::Region"
-        },
-        ":lambda:path/2015-03-31/functions/",
-        {
-         "Fn::GetAtt": [
-          "LambdaFunctionOverHttpsAEB384B6",
-          "Arn"
-         ]
-        },
-        "/invocations"
-       ]
-      ]
-     }
-    },
-    "ResourceId": {
-     "Fn::GetAtt": [
-      "DynamoDBOperations91CAC159",
-      "RootResourceId"
-     ]
-    },
-    "RestApiId": {
-     "Ref": "DynamoDBOperations91CAC159"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/Resource"
-   }
-  },
-  "lambdaapigatewaytable2C79ECBE": {
-   "Type": "AWS::DynamoDB::Table",
-   "Properties": {
-    "AttributeDefinitions": [
-     {
-      "AttributeName": "id",
-      "AttributeType": "S"
-     }
-    ],
-    "BillingMode": "PAY_PER_REQUEST",
-    "KeySchema": [
-     {
-      "AttributeName": "id",
-      "KeyType": "HASH"
-     }
-    ],
-    "TableName": "lambda-apigateway-table"
-   },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/lambda-apigateway-table/Resource"
-   }
-  },
-  "CDKMetadata": {
-   "Type": "AWS::CDK::Metadata",
-   "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/6VUUW/TMBD+LfgReQG2t751o6CKbS1pEUJRNV3ja2rm2Ma+MIUo/x3ZidtuYiC0h6rO+e6+u+++83l2/vZd9vYVPPizUtyfKbnNuhVBec/hwd91EuqsWxoly7bomDBlU6MmNmGvGWc22m+hxmjoeceACMr92uRGIZsU7DXbPGsOOf4vomMgxIqAMFTh2aTo+k2/4Vc7PdTIg3vRMfC+qVFctmzSMeukLqUFNS1L0xyqH3xCwLQkafTYAxPoSyftwcSZMwr/0OVcK6lxAH5c4tosE+bhOlT6z9C/Xr6gpxo0VChiTomRuEe2dupG3wHKWtXmWJufJw0EYsiZlo2MB5SeK6i3ArLuQ6MjYtGx3Xg8UDYwOB5LI9JxD1oodMmn0SQTyREh5YzzRVdL76XRPfcXd+A9ks+m4Y/7i+yyKe+RLsFjseHKVD7rrk310ZnGFh1T4/E4xJg/efQcrKyA8AHarMvR09TKIHfcQaPoyji/dLhTstrTIgrDhxmAUuZh4WQlw/fAfzDdIO2N8In7UplGfAUq94OWyTX41PqE6wPVQY1WmTZFDV8nNQggWDsocaZhq1AkR2WqSurqGn+iYhM2v/2wYJx5gupUyQy1sEZqWrc2qoLls4/zxe30mm3SeqfpDKyczhQJpH4fKxrXcQfK46iOwT8cR4nyo2vk9umWgZX/ypy269pUsgQ1Fyd79Sd7rOSYh69C/xE8mUbEF9EYUWJqnqM3jSsxCjEsLh/EUHSBwHiVtE9kh7vRIDVh5eCEEHMitYb2xslfYVlOv+YpOplifJhmmjBY+QnbHH800oW+IpHP+XNWx5Jy9NZoPz4UnoAaf3XcWzdeL8FBjYTOp7djnMTNoyz/m4S/iKzDRIaAnotWQ23ENuvWYbZFxyw4ksH9E8bHVB9FTQMVq0DdVioldXUz1LycfrtbzvK7fPb5y2y1jh08t7QUgJ4IJIL3/UEiRcQbfhseH7KgIamr4L1oyDbU82VLe6PfXGTvzrOLV9+9lGfjO5nlw/9v0A9ox8IHAAA="
-   },
-   "Metadata": {
-    "aws:cdk:path": "AwsApiGatewayDynamoDbStack/CDKMetadata/Default"
-   },
-   "Condition": "CDKMetadataAvailable"
-  }
- },
- "Outputs": {
-  "DynamoDBOperationsEndpoint5A58C10A": {
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "https://",
-      {
-       "Ref": "DynamoDBOperations91CAC159"
-      },
-      ".execute-api.",
-      {
-       "Ref": "AWS::Region"
-      },
-      ".",
-      {
-       "Ref": "AWS::URLSuffix"
-      },
-      "/",
-      {
-       "Ref": "DynamoDBOperationsDeploymentStagetest84A4A34C"
-      },
-      "/"
-     ]
-    ]
-   }
-  }
- },
- "Conditions": {
-  "CDKMetadataAvailable": {
-   "Fn::Or": [
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "af-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-3"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-south-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-3"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-4"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ca-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ca-west-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "cn-north-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "cn-northwest-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-central-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-north-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-south-2"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-3"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "il-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "me-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "me-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "sa-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-east-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-west-1"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Equals": [
-      {
-       "Ref": "AWS::Region"
-      },
-      "us-west-2"
-     ]
-    }
-   ]
-  }
- },
- "Parameters": {
-  "BootstrapVersion": {
-   "Type": "AWS::SSM::Parameter::Value<String>",
-   "Default": "/cdk-bootstrap/hnb659fds/version",
-   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
-  }
- },
- "Rules": {
-  "CheckBootstrapVersion": {
-   "Assertions": [
-    {
-     "Assert": {
-      "Fn::Not": [
-       {
-        "Fn::Contains": [
-         [
-          "1",
-          "2",
-          "3",
-          "4",
-          "5"
-         ],
-         {
-          "Ref": "BootstrapVersion"
-         }
-        ]
-       }
-      ]
-     },
-     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
-    }
-   ]
-  }
- }
-}
+---
+Resources:
+  lambdaapigatewaypolicy89620025:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:DescribeLogStreams
+          - logs:PutLogEvents
+          Effect: Allow
+          Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: lambda-apigateway-policy
+      Roles:
+      - Ref: lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/lambda-apigateway-policy/Resource
+  lambdaapigatewayrole2D804D1D:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      Description: Custom IAM role for Lambda function
+      RoleName: lambda-apigateway-role
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/lambda-apigateway-role/Resource
+  lambdaapigatewayroleDefaultPolicyC24B2C67:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - lambdaapigatewaytable2C79ECBE
+            - Arn
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - lambdaapigatewaytable2C79ECBE
+            - Arn
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - lambdaapigatewaytable2C79ECBE
+            - Arn
+          - Ref: AWS::NoValue
+        Version: '2012-10-17'
+      PolicyName: lambdaapigatewayroleDefaultPolicyC24B2C67
+      Roles:
+      - Ref: lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/lambda-apigateway-role/DefaultPolicy/Resource
+  GetFunctionC96F89C4:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3.zip
+      Environment:
+        Variables:
+          TABLE_NAME: lambda-apigateway-table
+      Handler: get.get_handler
+      Role:
+        Fn::GetAtt:
+        - lambdaapigatewayrole2D804D1D
+        - Arn
+      Runtime: python3.12
+    DependsOn:
+    - lambdaapigatewayroleDefaultPolicyC24B2C67
+    - lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/GetFunction/Resource
+      aws:asset:path: asset.145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  GetFunctionLogGroupAEEBDF32:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - "/aws/lambda/"
+          - Ref: GetFunctionC96F89C4
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/GetFunction/LogGroup/Resource
+  GetFunctionlambdaapigatewaypermission6B16DE21:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - GetFunctionC96F89C4
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/*/*/*"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/GetFunction/lambda-apigateway-permission
+  PostFunction61046647:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3.zip
+      Environment:
+        Variables:
+          TABLE_NAME: lambda-apigateway-table
+      Handler: post.post_handler
+      Role:
+        Fn::GetAtt:
+        - lambdaapigatewayrole2D804D1D
+        - Arn
+      Runtime: python3.12
+    DependsOn:
+    - lambdaapigatewayroleDefaultPolicyC24B2C67
+    - lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PostFunction/Resource
+      aws:asset:path: asset.145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  PostFunctionLogGroupFBB4EEF3:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - "/aws/lambda/"
+          - Ref: PostFunction61046647
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PostFunction/LogGroup/Resource
+  PostFunctionlambdaapigatewaypermission648BCAB1:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PostFunction61046647
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/*/*/*"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PostFunction/lambda-apigateway-permission
+  PutFunctionB365F74C:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3.zip
+      Environment:
+        Variables:
+          TABLE_NAME: lambda-apigateway-table
+      Handler: put.put_handler
+      Role:
+        Fn::GetAtt:
+        - lambdaapigatewayrole2D804D1D
+        - Arn
+      Runtime: python3.12
+    DependsOn:
+    - lambdaapigatewayroleDefaultPolicyC24B2C67
+    - lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PutFunction/Resource
+      aws:asset:path: asset.145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  PutFunctionLogGroup2450B7D1:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - "/aws/lambda/"
+          - Ref: PutFunctionB365F74C
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PutFunction/LogGroup/Resource
+  PutFunctionlambdaapigatewaypermission58904EE9:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PutFunctionB365F74C
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/*/*/*"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/PutFunction/lambda-apigateway-permission
+  DeleteFunction9052F8B5:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3.zip
+      Environment:
+        Variables:
+          TABLE_NAME: lambda-apigateway-table
+      Handler: delete.delete_handler
+      Role:
+        Fn::GetAtt:
+        - lambdaapigatewayrole2D804D1D
+        - Arn
+      Runtime: python3.12
+    DependsOn:
+    - lambdaapigatewayroleDefaultPolicyC24B2C67
+    - lambdaapigatewayrole2D804D1D
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DeleteFunction/Resource
+      aws:asset:path: asset.145fe4f5b5678ec907c3e18d60d5675da618b16c9a5a806a750b4c33b8dfdce3
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  DeleteFunctionLogGroup004FF2B5:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - "/aws/lambda/"
+          - Ref: DeleteFunction9052F8B5
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DeleteFunction/LogGroup/Resource
+  DeleteFunctionlambdaapigatewaypermissionC555FE66:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - DeleteFunction9052F8B5
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/*/*/*"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DeleteFunction/lambda-apigateway-permission
+  DynamoDBOperations91CAC159:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
+      Name: DynamoDBOperations
+      Policy:
+        Statement:
+        - Action: execute-api:Invoke
+          Effect: Allow
+          Principal:
+            AWS: "*"
+          Resource: execute-api:/*
+        Version: '2012-10-17'
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Resource
+  DynamoDBOperationsCloudWatchRoleD18E3853:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/CloudWatchRole/Resource
+  DynamoDBOperationsAccount88EF9192:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+        - DynamoDBOperationsCloudWatchRoleD18E3853
+        - Arn
+    DependsOn:
+    - DynamoDBOperations91CAC159
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Account
+  DynamoDBOperationsDeploymentD4A356FB2db4c3259369924c82c6f52ffcc8dfe1:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: Automatically created by the RestApi construct
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    DependsOn:
+    - DynamoDBOperationsDELETE45F5F4D7
+    - DynamoDBOperationsGET772E91E5
+    - DynamoDBOperationsOPTIONS2C57FF6D
+    - DynamoDBOperationsPOSTF4241CB2
+    - DynamoDBOperationsPUT0CAAC679
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Deployment/Resource
+      aws:cdk:do-not-refactor: true
+  DynamoDBOperationsDeploymentStagetest84A4A34C:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: DynamoDBOperationsDeploymentD4A356FB2db4c3259369924c82c6f52ffcc8dfe1
+      MethodSettings:
+      - DataTraceEnabled: true
+        HttpMethod: "*"
+        LoggingLevel: INFO
+        ResourcePath: "/*"
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+      StageName: test
+    DependsOn:
+    - DynamoDBOperationsAccount88EF9192
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/DeploymentStage.test/Resource
+  DynamoDBOperationsOPTIONS2C57FF6D:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+            method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Fn::GetAtt:
+        - DynamoDBOperations91CAC159
+        - RootResourceId
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/OPTIONS/Resource
+  DynamoDBOperationsGETApiPermissionAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011GET66DC1124:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - GetFunctionC96F89C4
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/"
+          - Ref: DynamoDBOperationsDeploymentStagetest84A4A34C
+          - "/GET/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/GET/ApiPermission.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.GET..
+  DynamoDBOperationsGETApiPermissionTestAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011GET4D74EF6F:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - GetFunctionC96F89C4
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/test-invoke-stage/GET/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/GET/ApiPermission.Test.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.GET..
+  DynamoDBOperationsGET772E91E5:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:'
+            - Ref: AWS::Partition
+            - ":apigateway:"
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - GetFunctionC96F89C4
+              - Arn
+            - "/invocations"
+      ResourceId:
+        Fn::GetAtt:
+        - DynamoDBOperations91CAC159
+        - RootResourceId
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/GET/Resource
+  DynamoDBOperationsPOSTApiPermissionAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011POSTF5FDE89F:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PostFunction61046647
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/"
+          - Ref: DynamoDBOperationsDeploymentStagetest84A4A34C
+          - "/POST/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/ApiPermission.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.POST..
+  DynamoDBOperationsPOSTApiPermissionTestAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011POSTEC81F65A:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PostFunction61046647
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/test-invoke-stage/POST/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/ApiPermission.Test.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.POST..
+  DynamoDBOperationsPOSTF4241CB2:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:'
+            - Ref: AWS::Partition
+            - ":apigateway:"
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - PostFunction61046647
+              - Arn
+            - "/invocations"
+      ResourceId:
+        Fn::GetAtt:
+        - DynamoDBOperations91CAC159
+        - RootResourceId
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/POST/Resource
+  DynamoDBOperationsPUTApiPermissionAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011PUTE7438916:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PutFunctionB365F74C
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/"
+          - Ref: DynamoDBOperationsDeploymentStagetest84A4A34C
+          - "/PUT/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/PUT/ApiPermission.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.PUT..
+  DynamoDBOperationsPUTApiPermissionTestAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011PUTAAD283D2:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - PutFunctionB365F74C
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/test-invoke-stage/PUT/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/PUT/ApiPermission.Test.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.PUT..
+  DynamoDBOperationsPUT0CAAC679:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:'
+            - Ref: AWS::Partition
+            - ":apigateway:"
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - PutFunctionB365F74C
+              - Arn
+            - "/invocations"
+      ResourceId:
+        Fn::GetAtt:
+        - DynamoDBOperations91CAC159
+        - RootResourceId
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/PUT/Resource
+  DynamoDBOperationsDELETEApiPermissionAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011DELETEF6341295:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - DeleteFunction9052F8B5
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/"
+          - Ref: DynamoDBOperationsDeploymentStagetest84A4A34C
+          - "/DELETE/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/DELETE/ApiPermission.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.DELETE..
+  DynamoDBOperationsDELETEApiPermissionTestAwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011DELETEDEEC58F9:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - DeleteFunction9052F8B5
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - ":execute-api:"
+          - Ref: AWS::Region
+          - ":"
+          - Ref: AWS::AccountId
+          - ":"
+          - Ref: DynamoDBOperations91CAC159
+          - "/test-invoke-stage/DELETE/"
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/DELETE/ApiPermission.Test.AwsApiGatewayDynamoDbStackDynamoDBOperations3F9FA011.DELETE..
+  DynamoDBOperationsDELETE45F5F4D7:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: DELETE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:'
+            - Ref: AWS::Partition
+            - ":apigateway:"
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - DeleteFunction9052F8B5
+              - Arn
+            - "/invocations"
+      ResourceId:
+        Fn::GetAtt:
+        - DynamoDBOperations91CAC159
+        - RootResourceId
+      RestApiId:
+        Ref: DynamoDBOperations91CAC159
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/DynamoDBOperations/Default/DELETE/Resource
+  lambdaapigatewaytable2C79ECBE:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      TableName: lambda-apigateway-table
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/lambda-apigateway-table/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/+1VTW/jNhD9LcvjglG3yc03J/UujE1iV3ZRFEIQjMWJzIYiWXKUQBX03xekREcxmt0u3F6KnkQ9zhdn3sycZ+cfzrMP7+DZn5Xi8UzJXdZtCMpHDs/+vpNQZ93aKFm2RceEKZsaNbEZe884sxG/hRoj0POOARGU+63JjUI2K9h7dvcmHGx8n0bHQIgNAWGIwrNZ0fX/EHzHrx708FAefBYdA++bGsVly2Yds07qUlpQ87I0zSEFg0xQmJckjR4TwQT60kl7gDhzRuFfpGqpldQ4OH79zq1ZJ5+H6/SAr6qeYPeU2xOyVYOGCkU0KTGW5BXWzt0oO7iyVrU51uZpEkZIOTnTsrGWwUvPFdQ7AVn3sdHRY9Ex1E/SGT3hsYsci8fSiHTcgxYKXZJpNMlp9YRYTA0VUWrM8v8u/o6LWKZUmNh+6GrpvTS65/7iHrxH8tk8fLi/yC6b8hHpEjwWd1yZymfdtak+OdPYomNqPL7qsVPAGF5y0HOwsgLCZ2izLkdPcyvDRMQHaBRdGefXDh+UrPa0im3vQx+AUuZ55WQlw//QAwG6Qdob4RP/S2Ua8StQuR/GHbkGj9Ejvh/oHmaNVaZNWsPfJAYBBFsHJS407BSKJKhMVUldXeMTKjZjy9uPK8aZJ6imc4qhFtZITdvWxs5k+eLTcnU7v2Z3aQOkyg9ZOSgHhEDqn2JE47B9AOVx7NBBPhzHMcFfRGNuj2coWPkty2lOXZtKlqCW4mh+/Vt4fNFLPHwT8hgfkaAx8pPKEb1E0zxHbxpXYuyH0E98IFXRhULEq9SfRHa4GwGpCSsHk8SaCWUb2hsn/wwNPf1bJu0ERf3AisQUsPIztjn+0UgX3hUL8pY8Z3UMKUdvjfbj0PcE1Pirl9nixus1OKiR0Pm0B8ZK3Lyy8r1G+EnJGkfHf8BC5NWg0HPRaqiN2GXdNjC06JgFRzKIf8a43vVLi9NQ0E0gwE4qJXV1M2R+Pf/tfr3I7/PFz78sNttYh7dGGAVHRzSPzvv+QPS0OOLy4HErhE6QugrSq4ZsQz1ft7Q3+oeL7Mfz7OLd717Ks3EjZfnw/QJb8z328woAAA==
+    Metadata:
+      aws:cdk:path: AwsApiGatewayDynamoDbStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  DynamoDBOperationsEndpoint5A58C10A:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Ref: DynamoDBOperations91CAC159
+        - ".execute-api."
+        - Ref: AWS::Region
+        - "."
+        - Ref: AWS::URLSuffix
+        - "/"
+        - Ref: DynamoDBOperationsDeploymentStagetest84A4A34C
+        - "/"
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+    - Fn::Or:
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - af-south-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-east-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-northeast-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-northeast-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-northeast-3
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-south-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-south-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-southeast-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-southeast-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-southeast-3
+    - Fn::Or:
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ap-southeast-4
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ca-central-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - ca-west-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - cn-north-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - cn-northwest-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-central-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-central-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-north-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-south-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-south-2
+    - Fn::Or:
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-west-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-west-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - eu-west-3
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - il-central-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - me-central-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - me-south-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - sa-east-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - us-east-1
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - us-east-2
+      - Fn::Equals:
+        - Ref: AWS::Region
+        - us-west-1
+    - Fn::Equals:
+      - Ref: AWS::Region
+      - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/cdk-bootstrap/hnb659fds/version"
+    Description: Version of the CDK Bootstrap resources in this environment, automatically
+      retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+    - Assert:
+        Fn::Not:
+        - Fn::Contains:
+          - - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+          - Ref: BootstrapVersion
+      AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap'
+        with a recent version of the CDK CLI.
