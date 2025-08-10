@@ -57,6 +57,7 @@ class AwsApiGatewayDynamoDbStack(Stack):
 
         get_function = lambda_.Function(
             self, "ReadFunction",
+            function_name="ReadFunction",
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler="get.get_handler",
             code=lambda_.Code.from_asset("lambda"),
@@ -66,8 +67,21 @@ class AwsApiGatewayDynamoDbStack(Stack):
             }
         )
 
+        get_all_function = lambda_.Function(
+            self, "ReadAllFunction",
+            function_name="ReadAllFunction",
+            runtime=lambda_.Runtime.PYTHON_3_12,
+            handler="get_all.get_all_handler",
+            code=lambda_.Code.from_asset("lambda"),
+            role=custom_role,
+            environment={
+                "TABLE_NAME": "lambda-apigateway-table"
+            }
+        )
+
         post_function = lambda_.Function(
             self, "CreateFunction",
+            function_name="CreateFunction",
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler="post.post_handler",
             code=lambda_.Code.from_asset("lambda"),
@@ -79,6 +93,7 @@ class AwsApiGatewayDynamoDbStack(Stack):
 
         put_function = lambda_.Function(
             self, "UpdateFunction",
+            function_name="UpdateFunction",
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler="put.put_handler",
             code=lambda_.Code.from_asset("lambda"),
@@ -90,6 +105,7 @@ class AwsApiGatewayDynamoDbStack(Stack):
 
         delete_function = lambda_.Function(
             self, "DeleteFunction",
+            function_name="DeleteFunction",
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler="delete.delete_handler",
             code=lambda_.Code.from_asset("lambda"),
@@ -128,11 +144,20 @@ class AwsApiGatewayDynamoDbStack(Stack):
             )
         )
 
+        get_all_resource = api.root.add_resource("GetAll")
+        get_all_resource.add_method("GET", apigw.LambdaIntegration(get_all_function, proxy=False))
+
         api.root.add_method("GET", apigw.LambdaIntegration(get_function, proxy=False))
         api.root.add_method("POST", apigw.LambdaIntegration(post_function, proxy=False))
         api.root.add_method("PUT", apigw.LambdaIntegration(put_function, proxy=False))
         api.root.add_method("DELETE", apigw.LambdaIntegration(delete_function, proxy=False))
 
+        get_all_function.add_permission(
+            "lambda-apigateway-permission",
+            principal=iam.ServicePrincipal("apigateway.amazonaws.com"),
+            action="lambda:InvokeFunction",
+            source_arn=api.arn_for_execute_api()
+        )
 
         get_function.add_permission(
             "lambda-apigateway-permission",
@@ -174,6 +199,7 @@ class AwsApiGatewayDynamoDbStack(Stack):
         )
 
         table.grant_read_data(get_function)
+        table.grant_read_data(get_all_function)
         table.grant_write_data(post_function)
         table.grant_write_data(put_function)
         table.grant_read_write_data(delete_function)
