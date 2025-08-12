@@ -1,0 +1,44 @@
+{
+  "operation": "create",
+  "payload": {
+    "Item": {
+      "id": "1234ABCD",
+      "number": 5
+    }
+  }
+}
+
+{
+    "operation": "update",
+    "payload": {
+        "Key": {
+            "id": "1234ABCD"
+        },
+        "UpdateExpression": "SET #num = :newNum",
+        "ExpressionAttributeNames": {
+            "#num": "number"
+        },
+        "ExpressionAttributeValues": {
+            ":newNum": 10
+        }
+    }
+}
+
+{
+    "operation": "delete",
+    "payload": {
+        "Key": {
+            "id": "1234ABCD"
+        }
+    }
+}
+
+
+{
+    "operation": "read",
+    "payload": {
+        "Key": {
+            "id": "1234ABCD"
+        }
+    }
+}

@@ -16,7 +16,7 @@ def post_function(payload):
     try:
         dynamo.put_item(Item=payload['Item'])
         logger.info(f"Item added: {payload['Item']}")
-        print(f"Item added successfully")
+        print("Item added successfully")
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
